@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Job #{{ job[0] }}{% endblock %}
+
+{% block extra_style %}
+<style>
+    .edit-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .edit-card {
+        background: white;
+        border-radius: 14px;
+        padding: 35px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .edit-card h2 {
+        color: #1a73e8;
+        margin-bottom: 25px;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .job-badge {
+        background: #e3f2fd;
+        color: #1a73e8;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .form-group label .required {
+        color: #e53935;
+        margin-left: 2px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        background: #fafafa;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        border-color: #1a73e8;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        background: white;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-group .hint {
+        font-size: 12px;
+        color: #888;
+        margin-top: 5px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #1a73e8, #0d47a1);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.3s, transform 0.2s;
+    }
+
+    .btn-save:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .btn-cancel {
+        background: #f5f5f5;
+        color: #555;
+        text-decoration: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        transition: background 0.3s;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-cancel:hover {
+        background: #e0e0e0;
+    }
+
+    .current-values {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 25px;
+        border-left: 4px solid #1a73e8;
+    }
+
+    .current-values h3 {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .current-values p {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 4px;
+    }
+
+    .current-values p strong {
+        color: #1a73e8;
+    }
+
+    @media (max-width: 768px) {
+        .edit-card { padding: 20px; }
+        .form-actions { flex-direction: column; }
+        .btn-save, .btn-cancel { text-align: center; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+
+    <h2 class="page-title">
+        ✏️ Edit Job
+        <span class="job-badge">#{{ job[0] }}</span>
+    </h2>
+
+    <div class="current-values">
+        <h3>Current Values</h3>
+        <p>🌍 Country: <strong>{{ job[1] }}</strong></p>
+        <p>💼 Position: <strong>{{ job[2] }}</strong></p>
+        <p>💰 Salary: <strong>{{ job[3] }}</strong></p>
+        <p>📋 Requirements: <strong>{{ job[4] or 'None' }}</strong></p>
+        <p>📌 Status:
+            {% if job[5] %}
+            <strong style="color:#2e7d32;">Active</strong>
+            {% else %}
+            <strong style="color:#c62828;">Inactive</strong>
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="edit-card">
+        <h2>📝 Update Job Details</h2>
+
+        <form action="/update-job/{{ job[0] }}" method="post">
+
+            <div class="form-group">
+                <label>
+                    🌍 Country
+                    <span class="required">*</span>
+                </label>
+                <input type="text"
+                       name="country"
+                       value="{{ job[1] }}"
+                       placeholder="e.g. Poland, Germany, Saudi Arabia"
+                       required>
+                <p class="hint">Where the job is located</p>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    💼 Position
+                    <span class="required">*</span>
+                </label>
+                <input type="text"
+                       name="position"
+                       value="{{ job[2] }}"
+                       placeholder="e.g. Warehouse Worker, Electrician"
+                       required>
+                <p class="hint">Job title or role</p>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    💰 Salary
+                    <span class="required">*</span>
+                </label>
+                <input type="text"
+                       name="salary"
+                       value="{{ job[3] }}"
+                       placeholder="e.g. €1800/month, SAR 3500/month"
+                       required>
+                <p class="hint">Monthly salary with currency</p>
+            </div>
+
+            <div class="form-group">
+                <label>📋 Requirements</label>
+                <textarea name="requirements"
+                          placeholder="e.g. Age 21-45, 2+ years experience, valid passport">{{ job[4] or '' }}</textarea>
+                <p class="hint">Optional – job requirements and qualifications</p>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">
+                    💾 Save Changes
+                </button>
+                <a href="/jobs" class="btn-cancel">
+                    ← Back to Jobs
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}

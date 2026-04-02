@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate #{{ candidate[0] }}{% endblock %}
+
+{% block extra_style %}
+<style>
+    .back-link {
+        display: inline-block;
+        background: #f0f0f0;
+        color: #555;
+        padding: 8px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        transition: background 0.3s;
+    }
+
+    .back-link:hover { background: #e0e0e0; }
+
+    .detail-card {
+        background: white;
+        border-radius: 14px;
+        padding: 25px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+
+    .detail-card h2 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 20px;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .info-item {
+        padding: 12px 16px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #1a73e8;
+    }
+
+    .info-item.wide { grid-column: 1 / -1; }
+
+    .info-item .label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .info-item .value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        word-break: break-word;
+    }
+
+    .info-item.green  { border-left-color: #4caf50; }
+    .info-item.orange { border-left-color: #ff9800; }
+    .info-item.purple { border-left-color: #9c27b0; }
+    .info-item.red    { border-left-color: #f44336; }
+    .info-item.teal   { border-left-color: #009688; }
+
+    .job-info {
+        background: #e3f2fd;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-top: 15px;
+        font-size: 15px;
+    }
+
+    .job-info strong { color: #1a73e8; }
+
+    .no-job-info {
+        background: #fff3e0;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-top: 15px;
+        font-size: 15px;
+        color: #e65100;
+    }
+
+    .status-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .status-select {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        font-size: 14px;
+        background: white;
+        min-width: 200px;
+        transition: border-color 0.3s;
+    }
+
+    .status-select:focus {
+        border-color: #1a73e8;
+        outline: none;
+    }
+
+    .btn-update {
+        background: linear-gradient(135deg, #1a73e8, #0d47a1);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: opacity 0.3s;
+    }
+
+    .btn-update:hover { opacity: 0.9; }
+
+    .current-status {
+        font-size: 13px;
+        color: #888;
+    }
+
+    .current-status strong { color: #333; }
+
+    .note-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        height: 80px;
+        resize: vertical;
+        transition: border-color 0.3s;
+        margin-bottom: 12px;
+        box-sizing: border-box;
+    }
+
+    .note-textarea:focus {
+        border-color: #1a73e8;
+        outline: none;
+    }
+
+    .btn-note {
+        background: linear-gradient(135deg, #4caf50, #388e3c);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: opacity 0.3s;
+    }
+
+    .btn-note:hover { opacity: 0.9; }
+
+    .note-item {
+        background: #fffde7;
+        border-left: 4px solid #fbbc04;
+        padding: 12px 18px;
+        margin-bottom: 12px;
+        border-radius: 0 10px 10px 0;
+    }
+
+    .note-item .note-text {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .note-item .note-meta {
+        font-size: 11px;
+        color: #999;
+    }
+
+    .empty-notes {
+        text-align: center;
+        padding: 25px;
+        color: #999;
+        font-size: 14px;
+    }
+
+    .date-info {
+        font-size: 12px;
+        color: #999;
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    @media (max-width: 768px) {
+        .info-grid { grid-template-columns: 1fr; }
+        .info-item.wide { grid-column: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/candidates" class="back-link">← Back to Candidates</a>
+
+<h2 class="page-title">👤 Candidate #{{ candidate[0] }}</h2>
+
+{#
+    Column index map:
+    candidate[0]  = id
+    candidate[1]  = phone
+    candidate[2]  = full_name        ← NEW
+    candidate[3]  = current_profession
+    candidate[4]  = nationality
+    candidate[5]  = current_city
+    candidate[6]  = work_preference
+    candidate[7]  = years_experience
+    candidate[8]  = documents_available
+    candidate[9]  = process_ready
+    candidate[10] = next_step
+    candidate[11] = preferred_day
+    candidate[12] = preferred_time
+    candidate[13] = status
+    candidate[14] = created_at
+    candidate[15] = notes
+    candidate[16] = job_id
+#}
+
+<!-- Candidate Info -->
+<div class="detail-card">
+    <h2>📋 Candidate Information</h2>
+    <div class="info-grid">
+
+        <div class="info-item teal">
+            <div class="label">👤 Full Name</div>
+            <div class="value">{{ candidate[2] or 'N/A' }}</div>
+        </div>
+        <div class="info-item">
+            <div class="label">📞 Phone Number</div>
+            <div class="value">+{{ candidate[1] or 'N/A' }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">💼 Current Profession</div>
+            <div class="value">{{ candidate[3] or 'N/A' }}</div>
+        </div>
+        <div class="info-item green">
+            <div class="label">🌍 Nationality</div>
+            <div class="value">{{ candidate[4] or 'N/A' }}</div>
+        </div>
+
+        <div class="info-item green">
+            <div class="label">📍 Current City</div>
+            <div class="value">{{ candidate[5] or 'N/A' }}</div>
+        </div>
+        <div class="info-item orange">
+            <div class="label">🎯 Work Preference</div>
+            <div class="value">{{ candidate[6] or 'N/A' }}</div>
+        </div>
+
+        <div class="info-item orange">
+            <div class="label">📅 Years of Experience</div>
+            <div class="value">{{ candidate[7] or 'N/A' }}</div>
+        </div>
+        <div class="info-item">
+            <div class="label">✅ Process Ready</div>
+            <div class="value">
+                {% if candidate[9] %}
+                    ✅ Yes – Ready to proceed
+                {% else %}
+                    ❌ No – Not confirmed
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-item wide purple">
+            <div class="label">📄 Documents Available</div>
+            <div class="value">{{ candidate[8] or 'N/A' }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="label">📋 Next Step</div>
+            <div class="value">
+                {% if candidate[10] == 'call_back' %}
+                    📞 Call Back
+                {% elif candidate[10] == 'office_visit' %}
+                    🏢 Office Visit
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item red">
+            <div class="label">📅 Preferred Day</div>
+            <div class="value">{{ candidate[11] or 'N/A' }}</div>
+        </div>
+
+        <div class="info-item red">
+            <div class="label">⏰ Preferred Time</div>
+            <div class="value">{{ candidate[12] or 'N/A' }}</div>
+        </div>
+        <div class="info-item">
+            <div class="label">📌 Current Status</div>
+            <div class="value">{{ candidate[13] or 'New' }}</div>
+        </div>
+
+    </div>
+
+    <!-- Job Applied For -->
+    {% if job %}
+    <div class="job-info">
+        💼 <strong>Applied for:</strong>
+        {{ job[2] }} in {{ job[1] }}
+        {% if job[3] %} — {{ job[3] }}{% endif %}
+    </div>
+    {% elif candidate[16] %}
+    <div class="no-job-info">
+        ⛔ <strong>Position Removed</strong> —
+        This job was deleted but the application is retained.
+    </div>
+    {% endif %}
+
+    <div class="date-info">
+        📅 Applied:
+        {% if candidate[14] %}
+            {{ candidate[14].strftime('%d %b %Y at %H:%M') }}
+        {% else %}
+            N/A
+        {% endif %}
+    </div>
+</div>
+
+<!-- Status Update -->
+<div class="detail-card">
+    <h2>📌 Update Status</h2>
+    <form method="POST"
+          action="/update-candidate-status/{{ candidate[0] }}"
+          class="status-form">
+        <select name="status" class="status-select">
+            <option value="New"
+                {% if candidate[13] == 'New' %}selected{% endif %}>
+                🆕 New
+            </option>
+            <option value="In Process"
+                {% if candidate[13] == 'In Process' %}selected{% endif %}>
+                ⚙️ In Process
+            </option>
+            <option value="Interview Scheduled"
+                {% if candidate[13] == 'Interview Scheduled' %}selected{% endif %}>
+                📅 Interview Scheduled
+            </option>
+            <option value="Documents Pending"
+                {% if candidate[13] == 'Documents Pending' %}selected{% endif %}>
+                📄 Documents Pending
+            </option>
+            <option value="Work Permit Applied"
+                {% if candidate[13] == 'Work Permit Applied' %}selected{% endif %}>
+                📝 Work Permit Applied
+            </option>
+            <option value="Embassy Appointment"
+                {% if candidate[13] == 'Embassy Appointment' %}selected{% endif %}>
+                🏛️ Embassy Appointment
+            </option>
+            <option value="Visa Interview"
+                {% if candidate[13] == 'Visa Interview' %}selected{% endif %}>
+                🎤 Visa Interview
+            </option>
+            <option value="Approved"
+                {% if candidate[13] == 'Approved' %}selected{% endif %}>
+                ✅ Approved
+            </option>
+            <option value="Rejected"
+                {% if candidate[13] == 'Rejected' %}selected{% endif %}>
+                ❌ Rejected
+            </option>
+            <option value="Cancelled"
+                {% if candidate[13] == 'Cancelled' %}selected{% endif %}>
+                🚫 Cancelled
+            </option>
+        </select>
+        <button type="submit" class="btn-update">
+            ✅ Update Status
+        </button>
+        <span class="current-status">
+            Current: <strong>{{ candidate[13] or 'New' }}</strong>
+        </span>
+    </form>
+</div>
+
+<!-- Notes -->
+<div class="detail-card">
+    <h2>📝 Notes & Remarks</h2>
+    <form method="POST" action="/add-note/{{ candidate[0] }}">
+        <textarea name="note" class="note-textarea"
+                  placeholder="Add a note or remark about this candidate..."
+                  required></textarea>
+        <button type="submit" class="btn-note">
+            ➕ Add Note
+        </button>
+    </form>
+
+    <div style="margin-top: 20px;">
+        {% if notes and notes|length > 0 %}
+            {% for n in notes %}
+            <div class="note-item">
+                <div class="note-text">{{ n[1] }}</div>
+                <div class="note-meta">
+                    👤 {{ n[3] }} &nbsp;•&nbsp;
+                    📅 {% if n[2] %}
+                        {{ n[2].strftime('%d %b %Y at %H:%M') }}
+                    {% else %}N/A{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-notes">
+            No notes yet. Add one above.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

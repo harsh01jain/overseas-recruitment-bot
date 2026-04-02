@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}HR Dashboard{% endblock %}
+
+{% block extra_style %}
+<style>
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 35px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 14px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border-left: 5px solid #1a73e8;
+        transition: transform 0.3s;
+    }
+
+    .stat-card:hover  { transform: translateY(-5px); }
+    .stat-card.green  { border-left-color: #4caf50; }
+    .stat-card.orange { border-left-color: #ff9800; }
+    .stat-card.purple { border-left-color: #9c27b0; }
+    .stat-card.red    { border-left-color: #f44336; }
+    .stat-card.teal   { border-left-color: #009688; }
+
+    .stat-card .icon   { font-size: 36px; margin-bottom: 8px; }
+
+    .stat-card .number {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1a73e8;
+    }
+
+    .stat-card.green  .number { color: #4caf50; }
+    .stat-card.orange .number { color: #ff9800; }
+    .stat-card.purple .number { color: #9c27b0; }
+    .stat-card.red    .number { color: #f44336; }
+    .stat-card.teal   .number { color: #009688; }
+
+    .stat-card .label {
+        font-size: 13px;
+        color: #888;
+        margin-top: 5px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .recent-section {
+        background: white;
+        border-radius: 14px;
+        padding: 25px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .recent-section h2 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 20px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+        background: #f8f9fa;
+        padding: 12px 14px;
+        text-align: left;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+    }
+
+    tr:hover { background: #f8f9ff; }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-new                 { background: #e3f2fd; color: #1565c0; }
+    .status-in-process          { background: #fff3e0; color: #ef6c00; }
+    .status-interview-scheduled { background: #f3e5f5; color: #7b1fa2; }
+    .status-documents-pending   { background: #fff8e1; color: #f57f17; }
+    .status-work-permit-applied { background: #e0f2f1; color: #00695c; }
+    .status-embassy-appointment { background: #fce4ec; color: #ad1457; }
+    .status-visa-interview      { background: #ede7f6; color: #4527a0; }
+    .status-approved            { background: #e8f5e9; color: #2e7d32; }
+    .status-rejected            { background: #ffebee; color: #c62828; }
+    .status-cancelled           { background: #f5f5f5; color: #616161; }
+
+    .next-step-tag {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .tag-call  { background: #e8f5e9; color: #2e7d32; }
+    .tag-visit { background: #fff3e0; color: #ef6c00; }
+
+    .view-btn {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: background 0.3s;
+        display: inline-block;
+    }
+
+    .view-btn:hover { background: #0d47a1; }
+
+    .empty-msg {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+        font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+        .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 class="page-title">📊 Dashboard</h2>
+
+<!-- Stats Grid -->
+<div class="stats">
+    <div class="stat-card">
+        <div class="icon">👥</div>
+        <div class="number">{{ total_candidates }}</div>
+        <div class="label">Total Candidates</div>
+    </div>
+    <div class="stat-card green">
+        <div class="icon">🆕</div>
+        <div class="number">{{ new_candidates }}</div>
+        <div class="label">New Applications</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="icon">⚙️</div>
+        <div class="number">{{ in_process }}</div>
+        <div class="label">In Process</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="icon">📞</div>
+        <div class="number">{{ pending_calls }}</div>
+        <div class="label">Pending Calls</div>
+    </div>
+    <div class="stat-card red">
+        <div class="icon">🏢</div>
+        <div class="number">{{ pending_visits }}</div>
+        <div class="label">Office Visits</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="icon">💼</div>
+        <div class="number">{{ total_jobs }}</div>
+        <div class="label">Active Jobs</div>
+    </div>
+</div>
+
+<!-- Recent Candidates -->
+<div class="recent-section">
+    <h2>📋 Recent Applications</h2>
+
+    {% if recent %}
+    <div style="overflow-x: auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Phone</th>
+                <th>Name</th>          {# ← NEW #}
+                <th>Profession</th>
+                <th>Nationality</th>
+                <th>Status</th>
+                <th>Next Step</th>
+                <th>Applied</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {#
+                recent query columns:
+                r[0] = id
+                r[1] = phone
+                r[2] = full_name        ← NEW
+                r[3] = current_profession
+                r[4] = nationality
+                r[5] = status
+                r[6] = next_step
+                r[7] = created_at
+            #}
+            {% for r in recent %}
+            <tr>
+                <td>#{{ r[0] }}</td>
+                <td>+{{ r[1] }}</td>
+                <td><strong>{{ r[2] or '—' }}</strong></td>
+                <td><strong>{{ r[3] or '—' }}</strong></td>
+                <td>{{ r[4] or '—' }}</td>
+                <td>
+                    {% set status_lower = r[5]|lower|replace(' ', '-') %}
+                    <span class="status-badge status-{{ status_lower }}">
+                        {{ r[5] }}
+                    </span>
+                </td>
+                <td>
+                    {% if r[6] == 'call_back' %}
+                        <span class="next-step-tag tag-call">📞 Call Back</span>
+                    {% elif r[6] == 'office_visit' %}
+                        <span class="next-step-tag tag-visit">🏢 Office Visit</span>
+                    {% else %}—{% endif %}
+                </td>
+                <td>{{ r[7].strftime('%d %b %Y') if r[7] else '—' }}</td>
+                <td>
+                    <a href="/candidate/{{ r[0] }}" class="view-btn">
+                        👁️ View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="empty-msg">
+        📭 No candidates yet.
+        Applications from WhatsApp will appear here automatically.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

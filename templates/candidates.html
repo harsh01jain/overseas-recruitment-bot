@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Candidates{% endblock %}
+
+{% block extra_style %}
+<style>
+    .count-badge {
+        background: #e3f2fd;
+        color: #1a73e8;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+
+    .filter-bar {
+        background: white;
+        border-radius: 14px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-bar label {
+        font-weight: 600;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .filter-select {
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        font-size: 13px;
+        background: white;
+        transition: border-color 0.3s;
+    }
+
+    .filter-select:focus {
+        border-color: #1a73e8;
+        outline: none;
+    }
+
+    .clear-btn {
+        background: #f0f0f0;
+        color: #555;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .clear-btn:hover { background: #e0e0e0; }
+
+    .table-wrapper {
+        background: white;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1300px;
+    }
+
+    th {
+        background: linear-gradient(135deg, #1a73e8, #0d47a1);
+        color: white;
+        padding: 14px 12px;
+        text-align: left;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    tr:hover { background: #f8f9ff; }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-new                  { background: #e3f2fd; color: #1565c0; }
+    .status-in-process           { background: #fff3e0; color: #ef6c00; }
+    .status-interview-scheduled  { background: #f3e5f5; color: #7b1fa2; }
+    .status-documents-pending    { background: #fff8e1; color: #f57f17; }
+    .status-work-permit-applied  { background: #e0f2f1; color: #00695c; }
+    .status-embassy-appointment  { background: #fce4ec; color: #ad1457; }
+    .status-visa-interview       { background: #ede7f6; color: #4527a0; }
+    .status-approved             { background: #e8f5e9; color: #2e7d32; }
+    .status-rejected             { background: #ffebee; color: #c62828; }
+    .status-cancelled            { background: #f5f5f5; color: #616161; }
+
+    .next-step-tag {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .tag-call  { background: #e8f5e9; color: #2e7d32; }
+    .tag-visit { background: #fff3e0; color: #ef6c00; }
+
+    .view-btn {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: background 0.3s;
+        display: inline-block;
+    }
+
+    .view-btn:hover { background: #0d47a1; }
+
+    .delete-btn-small {
+        background: #ffebee;
+        color: #c62828;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: background 0.3s;
+        display: inline-block;
+    }
+
+    .delete-btn-small:hover { background: #ffcdd2; }
+
+    .empty {
+        text-align: center;
+        padding: 60px;
+        color: #999;
+        font-size: 18px;
+        background: white;
+        border-radius: 14px;
+    }
+
+    @media (max-width: 768px) {
+        .filter-bar { flex-direction: column; align-items: stretch; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 class="page-title">
+    👥 Candidates
+    <span class="count-badge">{{ candidates|length }} total</span>
+</h2>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <label>🔍 Filter:</label>
+    <form method="GET" action="/candidates"
+          style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <select name="status" class="filter-select"
+                onchange="this.form.submit()">
+            <option value="">All Status</option>
+            <option value="New"
+                {% if status_filter == 'New' %}selected{% endif %}>New</option>
+            <option value="In Process"
+                {% if status_filter == 'In Process' %}selected{% endif %}>In Process</option>
+            <option value="Interview Scheduled"
+                {% if status_filter == 'Interview Scheduled' %}selected{% endif %}>Interview Scheduled</option>
+            <option value="Documents Pending"
+                {% if status_filter == 'Documents Pending' %}selected{% endif %}>Documents Pending</option>
+            <option value="Work Permit Applied"
+                {% if status_filter == 'Work Permit Applied' %}selected{% endif %}>Work Permit Applied</option>
+            <option value="Embassy Appointment"
+                {% if status_filter == 'Embassy Appointment' %}selected{% endif %}>Embassy Appointment</option>
+            <option value="Visa Interview"
+                {% if status_filter == 'Visa Interview' %}selected{% endif %}>Visa Interview</option>
+            <option value="Approved"
+                {% if status_filter == 'Approved' %}selected{% endif %}>Approved</option>
+            <option value="Rejected"
+                {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
+            <option value="Cancelled"
+                {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+
+        <select name="next_step" class="filter-select"
+                onchange="this.form.submit()">
+            <option value="">All Types</option>
+            <option value="call_back"
+                {% if next_step_filter == 'call_back' %}selected{% endif %}>📞 Call Back</option>
+            <option value="office_visit"
+                {% if next_step_filter == 'office_visit' %}selected{% endif %}>🏢 Office Visit</option>
+        </select>
+
+        <a href="/candidates" class="clear-btn">✕ Clear Filters</a>
+    </form>
+</div>
+
+{% if candidates %}
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Phone</th>
+                <th>Name</th>          {# ← NEW column #}
+                <th>Profession</th>
+                <th>Nationality</th>
+                <th>City</th>
+                <th>Preference</th>
+                <th>Experience</th>
+                <th>Documents</th>
+                <th>Next Step</th>
+                <th>Schedule</th>
+                <th>Status</th>
+                <th>Applied</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in candidates %}
+            {#
+                Column index map (after full_name added):
+                c[0]  = id
+                c[1]  = phone
+                c[2]  = full_name        ← NEW
+                c[3]  = current_profession
+                c[4]  = nationality
+                c[5]  = current_city
+                c[6]  = work_preference
+                c[7]  = years_experience
+                c[8]  = documents_available
+                c[9]  = process_ready
+                c[10] = next_step
+                c[11] = preferred_day
+                c[12] = preferred_time
+                c[13] = status
+                c[14] = created_at
+                c[15] = notes
+            #}
+            <tr>
+                <td>#{{ c[0] }}</td>
+                <td>+{{ c[1] }}</td>
+                <td><strong>{{ c[2] or '—' }}</strong></td>   {# full_name #}
+                <td><strong>{{ c[3] or '—' }}</strong></td>   {# profession #}
+                <td>{{ c[4] or '—' }}</td>                    {# nationality #}
+                <td>{{ c[5] or '—' }}</td>                    {# city #}
+                <td>{{ c[6] or '—' }}</td>                    {# preference #}
+                <td>{{ c[7] or '—' }}</td>                    {# experience #}
+                <td style="max-width:120px; overflow:hidden;
+                           text-overflow:ellipsis; white-space:nowrap;"
+                    title="{{ c[8] or '' }}">
+                    {{ c[8] or '—' }}                          {# documents #}
+                </td>
+                <td>
+                    {% if c[10] == 'call_back' %}
+                        <span class="next-step-tag tag-call">📞 Call</span>
+                    {% elif c[10] == 'office_visit' %}
+                        <span class="next-step-tag tag-visit">🏢 Visit</span>
+                    {% else %}—{% endif %}
+                </td>
+                <td>
+                    {% if c[11] and c[12] %}
+                        {{ c[11] }} {{ c[12] }}
+                    {% else %}—{% endif %}
+                </td>
+                <td>
+                    {% set status_class = c[13]|lower|replace(' ', '-') %}
+                    <span class="status-badge status-{{ status_class }}">
+                        {{ c[13] }}
+                    </span>
+                </td>
+                <td>{{ c[14].strftime('%d %b') if c[14] else '—' }}</td>
+                <td>
+                    <a href="/candidate/{{ c[0] }}" class="view-btn">
+                        👁️ View
+                    </a>
+                    {% if user.role == 'admin' %}
+                    <a href="/delete-candidate/{{ c[0] }}"
+                       class="delete-btn-small"
+                       onclick="return confirm('Delete this candidate?')"
+                       style="margin-left:4px;">
+                        🗑️
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<div class="empty">
+    <p>📭 No candidates found.</p>
+    <p style="margin-top:10px; color:#aaa;">
+        {% if status_filter or next_step_filter %}
+            Try clearing filters to see all candidates.
+        {% else %}
+            Applications from WhatsApp will appear here automatically.
+        {% endif %}
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}
