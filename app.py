@@ -120,13 +120,28 @@ logging.info("✅ Security environment check passed.")
 # DATABASE
 # ====================================
 
-db_pool = SimpleConnectionPool(
-    1, 10,
-    host="localhost",
-    database="overseas_bot3",
-    user="postgres",
-    password=os.getenv("DB_PASSWORD")
-)
+import urllib.parse
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    result = urllib.parse.urlparse(DATABASE_URL)
+    db_pool = SimpleConnectionPool(
+        1, 10,
+        host=result.hostname,
+        port=result.port,
+        database=result.path[1:],
+        user=result.username,
+        password=result.password
+    )
+else:
+    db_pool = SimpleConnectionPool(
+        1, 10,
+        host="localhost",
+        database="overseas_bot3",
+        user="postgres",
+        password=os.getenv("DB_PASSWORD")
+    )
 
 
 @contextmanager
