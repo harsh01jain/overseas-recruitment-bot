@@ -3,17 +3,32 @@ import bcrypt
 import os
 from dotenv import load_dotenv
 
+import psycopg2
+import bcrypt
+import os
+import urllib.parse
+from dotenv import load_dotenv
+
 load_dotenv()
 
-DB_PASSWORD = os.getenv("DB_PASSWORD")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Connect to PostgreSQL
-conn = psycopg2.connect(
-    host="localhost",
-    database="overseas_bot3",
-    user="postgres",
-    password=DB_PASSWORD
-)
+if DATABASE_URL:
+    result = urllib.parse.urlparse(DATABASE_URL)
+    conn = psycopg2.connect(
+        host=result.hostname,
+        port=result.port,
+        database=result.path[1:],
+        user=result.username,
+        password=result.password
+    )
+else:
+    conn = psycopg2.connect(
+        host="localhost",
+        database="overseas_bot3",
+        user="postgres",
+        password=os.getenv("DB_PASSWORD")
+    )
 
 cursor = conn.cursor()
 
