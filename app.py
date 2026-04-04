@@ -58,7 +58,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
-templates = Jinja2Templates(directory="templates")
+from jinja2 import Environment, FileSystemLoader
+from starlette.templating import Jinja2Templates
+
+jinja_env = Environment(
+    loader=FileSystemLoader("templates"),
+    auto_reload=True
+)
+jinja_env.cache = {}
+templates = Jinja2Templates(env=jinja_env)
 
 logging.basicConfig(
     level=logging.INFO,
