@@ -1202,7 +1202,29 @@ async def receive_message(request: Request):
         message = value["messages"][0]
         sender = message["from"]
         msg_type = message.get("type", "")
+        message_id = message["id"]
 
+        def mark_as_read(message_id):
+            url = f"https://graph.facebook.com/v19.0/{PHONE_NUMBER_ID}/messages"
+
+            headers = {
+                "Authorization": f"Bearer {WHATSAPP_TOKEN}",
+                "Content-Type": "application/json"
+            }
+
+            payload = {
+                "messaging_product": "whatsapp",
+                "status": "read",
+                "message_id": message_id
+            }
+
+            try:
+                requests.post(url, headers=headers, json=payload)
+            except Exception as e:
+                logging.error(f"Mark as read failed: {e}")
+
+        # 🔵 THIS IS THE FIX
+        mark_as_read(message_id)
         if not is_valid_phone(sender):
             logging.warning(
                 f"🚨 SECURITY: Invalid phone format: "
