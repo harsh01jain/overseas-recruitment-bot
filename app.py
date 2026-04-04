@@ -2351,15 +2351,16 @@ def settings_page(request: Request):
                 (cat_key, cat_label, grouped[cat_key])
             )
 
-    return templates.TemplateResponse("settings.html", {
-        "request": request,
-        "user": user,
-        "active_page": "settings",
-        "categories": categories,
-        "success": (
-            request.query_params.get("saved") == "1"
-        ),
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="settings.html",
+        context={
+            "user": user,
+            "active_page": "settings",
+            "categories": categories,
+            "success": (request.query_params.get("saved") == "1"),
+        }
+    )
 
 
 @app.post("/settings")
