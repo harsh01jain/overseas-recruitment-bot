@@ -58,15 +58,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
-from jinja2 import Environment, FileSystemLoader
-from starlette.templating import Jinja2Templates
-
-jinja_env = Environment(
-    loader=FileSystemLoader("templates"),
-    auto_reload=True
-)
-jinja_env.cache = {}
-templates = Jinja2Templates(env=jinja_env)
+templates = Jinja2Templates(directory="templates")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -2493,9 +2485,11 @@ def login_page(request: Request):
         return RedirectResponse(
             url="/dashboard", status_code=303
         )
-    return templates.TemplateResponse("login.html", {
-        "request": request, "error": None
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"error": None}
+    )
 
 
 @app.post("/login")
@@ -2510,13 +2504,11 @@ def login(
         logging.warning(
             f"🚨 SECURITY: Locked IP {ip} attempted login"
         )
-        return templates.TemplateResponse("login.html", {
-            "request": request,
-            "error": (
-                "Too many failed attempts. "
-                "Please try again in 15 minutes."
-            )
-        })
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={"error": "Too many failed attempts. Please try again in 15 minutes."}
+        )
 
     username = sanitize_text(
         username.strip(), "generic"
@@ -2551,10 +2543,11 @@ def login(
             f"⚠️ Failed login for '{username}' "
             f"from IP {ip}"
         )
-        return templates.TemplateResponse("login.html", {
-            "request": request,
-            "error": error_msg
-        })
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={"error": error_msg}
+        )
 
     login_protection.record_success(ip)
     logging.info(f"✅ Login: {username} from IP {ip}")
@@ -2655,18 +2648,21 @@ def dashboard(request: Request):
         """)
         recent = cursor.fetchall()
 
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        "user": user,
-        "active_page": "dashboard",
-        "total_jobs": total_jobs,
-        "total_candidates": total_candidates,
-        "new_candidates": new_candidates,
-        "pending_calls": pending_calls,
-        "pending_visits": pending_visits,
-        "in_process": in_process,
-        "recent": recent,
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="dashboard.html",
+        context={
+            "user": user,
+            "active_page": "dashboard",
+            "total_jobs": total_jobs,
+            "total_candidates": total_candidates,
+            "new_candidates": new_candidates,
+            "pending_calls": pending_calls,
+            "pending_visits": pending_visits,
+            "in_process": in_process,
+            "recent": recent,
+        }
+    )
 
 
 # ====================================
@@ -2692,10 +2688,11 @@ def view_jobs(request: Request):
         )
         rows = cursor.fetchall()
 
-    return templates.TemplateResponse("jobs.html", {
-        "request": request, "user": user,
-        "active_page": "jobs", "jobs": rows
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="jobs.html",
+        context={"user": user, "active_page": "jobs", "jobs": rows}
+    )
 
 
 @app.post("/add-job")
@@ -2757,10 +2754,11 @@ def edit_job_page(request: Request, job_id: int):
             url="/jobs", status_code=303
         )
 
-    return templates.TemplateResponse("edit_job.html", {
-        "request": request, "user": user,
-        "active_page": "jobs", "job": job
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="edit_job.html",
+        context={"user": user, "active_page": "jobs", "job": job}
+    )
 
 
 @app.post("/update-job/{job_id}")
@@ -2895,13 +2893,17 @@ def view_candidates(request: Request):
         cursor.execute(query, tuple(params))
         rows = cursor.fetchall()
 
-    return templates.TemplateResponse("candidates.html", {
-        "request": request, "user": user,
-        "active_page": "candidates",
-        "candidates": rows,
-        "status_filter": status_filter,
-        "next_step_filter": next_step_filter,
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="candidates.html",
+        context={
+            "user": user,
+            "active_page": "candidates",
+            "candidates": rows,
+            "status_filter": status_filter,
+            "next_step_filter": next_step_filter,
+        }
+    )
 
 
 @app.get(
@@ -2971,11 +2973,14 @@ def view_candidate_detail(
         )
 
     return templates.TemplateResponse(
-        "candidate_detail.html", {
-            "request": request, "user": user,
+        request=request,
+        name="candidate_detail.html",
+        context={
+            "user": user,
             "active_page": "candidates",
             "candidate": candidate,
-            "job": job, "notes": notes,
+            "job": job,
+            "notes": notes,
         }
     )
 
@@ -3100,10 +3105,11 @@ def view_users(request: Request):
         )
         rows = cursor.fetchall()
 
-    return templates.TemplateResponse("users.html", {
-        "request": request, "user": user,
-        "active_page": "users", "users": rows
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="users.html",
+        context={"user": user, "active_page": "users", "users": rows}
+    )
 
 
 @app.post("/add-user")
@@ -3130,13 +3136,16 @@ def add_user(
                 "FROM users ORDER BY id"
             )
             rows = cursor.fetchall()
-        return templates.TemplateResponse("users.html", {
-            "request": request,
-            "user": user,
-            "active_page": "users",
-            "users": rows,
-            "error": error_msg,
-        })
+        return templates.TemplateResponse(
+            request=request,
+            name="users.html",
+            context={
+                "user": user,
+                "active_page": "users",
+                "users": rows,
+                "error": error_msg,
+            }
+        )
 
     if len(password) < 8:
         logging.warning(
@@ -3181,6 +3190,7 @@ def add_user(
         return get_users_page(
             "Failed to add user. Please try again."
         )
+
 
 @app.get("/toggle-user/{user_id}")
 def toggle_user(request: Request, user_id: int):
